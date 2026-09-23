@@ -1,4 +1,4 @@
-name: CI
+name: CI - Build, Test, Scan
 
 on:
   push:
@@ -6,30 +6,165 @@ on:
   pull_request:
     branches: [ "release", "uat", "sit" ]
 
+env:
+  NODE_VERSION: '20'
+  WORKING_DIR: angular.web
+  COVERAGE_THRESHOLD: 50
+
 jobs:
-  build:
-    name: Build Angular Web
+
+  # Stage 1: Restore, Build, Test, Coverage
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: angular.web
+        working-directory: ${{ env.WORKING_DIR }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: angular.web/package-lock.json
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build (Production)
         run: npm run build -- --configuration production
 
-      - name: It worked
-        run: echo "it worked"
+      - name: Run tests with coverage
+        run: |
+          npx ng test --watch=false --browsers=ChromeHeadless \
+            --code-coverage \
+            --karma-config=karma.conf.ci.js
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Angular Test Results
+          path: ${{ env.WORKING_DIR }}/test-results/junit.xml
+          reporter: java-junit
+
+      - name: Upload test results artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: angular-test-results
+          path: ${{ env.WORKING_DIR }}/test-results/
+
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: angular-coverage-report
+          path: ${{ env.WORKING_DIR }}/coverage/
+
+      - name: Enforce coverage threshold
+        run: |
+          COVERAGE_FILE="coverage/cobertura-coverage.xml"
+          if [ -f "$COVERAGE_FILE" ]; then
+            LINE_RATE=$(grep -oP 'line-rate="[\d.]+"' "$COVERAGE_FILE" | head -1 | grep -oP '[\d.]+')
+            COVERAGE=$(echo "$LINE_RATE * 100" | bc -l | xargs printf "%.1f")
+            echo "Line coverage: ${COVERAGE}%"
+            if (( $(echo "$COVERAGE < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+              echo "::error::Coverage ${COVERAGE}% is below threshold ${{ env.COVERAGE_THRESHOLD }}%"
+              exit 1
+            fi
+            echo "Coverage ${COVERAGE}% meets threshold ${{ env.COVERAGE_THRESHOLD }}%"
+          else
+            echo "::warning::Coverage report not found, skipping threshold check"
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: angular-dist
+          path: ${{ env.WORKING_DIR }}/dist/
+
+      - name: Build succeeded
+        run: echo "Build, test, and artifact upload completed successfully"
+
+  # Stage 2: Security Scanning (SAST + Dependencies)
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: SAST - Semgrep scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/typescript
+            p/javascript
+            p/owasp-top-ten
+            p/secrets
+
+      - name: Dependency scan - Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: ${{ env.WORKING_DIR }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
+          output: 'trivy-dependency-results.txt'
+
+      - name: Upload Trivy scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-dependency-scan
+          path: trivy-dependency-results.txt
+
+      - name: Security scan passed
+        run: echo "SAST and dependency scans passed, no High/Critical findings"
+
+  # Stage 3: Containerize
+  containerize:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [build-and-test, security-scan]
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t angular-web:${{ github.sha }} \
+            -t angular-web:latest \
+            -f Dockerfile .
+
+      - name: Scan Docker image - Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'angular-web:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
+          output: 'trivy-image-results.txt'
+
+      - name: Upload image scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-image-scan
+          path: trivy-image-results.txt
+
+      - name: Container build succeeded
+        run: echo "Docker image built and scanned - angular-web:${{ github.sha }}"
