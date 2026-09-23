@@ -7,12 +7,29 @@ on:
     branches: [ "release", "uat", "sit" ]
 
 jobs:
-  verify:
-    name: Verify
+  build:
+    name: Build Angular Web
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: angular.web
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: angular.web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build -- --configuration production
 
       - name: It worked
         run: echo "it worked"
