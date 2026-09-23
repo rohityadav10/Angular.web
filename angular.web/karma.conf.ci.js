@@ -33,7 +33,13 @@ module.exports = function (config) {
       useBrowserName: false
     },
     reporters: ['progress', 'kjhtml', 'coverage', 'junit'],
-    browsers: ['ChromeHeadless'],
+    customLaunchers: {
+      ChromeHeadlessCI: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
+      }
+    },
+    browsers: ['ChromeHeadlessCI'],
     restartOnFileChange: false,
     singleRun: true
   });
