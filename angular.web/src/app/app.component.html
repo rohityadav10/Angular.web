@@ -227,6 +227,14 @@
       </svg>
       <h1>Hello, {{ title }}</h1>
       <p>Congratulations! Your app is running. 🎉</p>
+      <div class="system-status-badge">
+        <span class="status-dot"></span>
+        <span class="status-env">{{ environment }}</span>
+        <span class="status-sep">|</span>
+        <span class="status-ver">v{{ appVersion }}</span>
+        <span class="status-sep">|</span>
+        <span class="status-text">{{ status }}</span>
+      </div>
     </div>
     <div class="divider" role="separator" aria-label="Divider"></div>
     <div class="right-side">

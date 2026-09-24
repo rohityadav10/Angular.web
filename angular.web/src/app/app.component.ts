@@ -9,4 +9,7 @@ import { RouterOutlet } from '@angular/router';
 })
 export class AppComponent {
   title = 'angular.web';
+  appVersion = '1.2.0';
+  environment = 'SIT';
+  status = 'Operational';
 }
