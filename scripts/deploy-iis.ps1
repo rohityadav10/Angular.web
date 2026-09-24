@@ -43,7 +43,25 @@ Write-Host "Target Path     : $SitePath"
 Write-Host "App Pool        : $AppPoolName"
 Write-Host "=========================================================="
 
-# 1. Verify artifact source exists
+# 1. Verify artifact source exists (with auto-discovery fallback)
+if (-not (Test-Path $ArtifactPath)) {
+    $candidates = @(
+        "./dist/angular.web/browser",
+        "./dist/browser",
+        "./dist",
+        "angular.web/dist/angular.web/browser",
+        "angular.web/dist/browser",
+        "angular.web/dist"
+    )
+    foreach ($cand in $candidates) {
+        if (Test-Path "$cand/index.html") {
+            $ArtifactPath = $cand
+            Write-Host "Auto-discovered artifact directory at: $ArtifactPath"
+            break
+        }
+    }
+}
+
 if (-not (Test-Path $ArtifactPath)) {
     Write-Error "Artifact directory not found at: $ArtifactPath"
     exit 1
