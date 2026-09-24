@@ -225,3 +225,11 @@ jobs:
             -SiteName "Default Web Site" `
             -HealthCheckUrl "http://localhost/" `
             -EnvironmentName "SIT"
+
+      - name: Upload IIS backup artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: angular-web-iis-backup
+          path: C:\inetpub\backups\
+          if-no-files-found: ignore
