@@ -1,0 +1,33 @@
+name: Deploy - UAT (IIS)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-uat:
+    name: Deploy to UAT (IIS)
+    runs-on: [self-hosted, windows, iis]
+    environment:
+      name: uat
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: angular-dist
+          path: ./dist
+        continue-on-error: true
+
+      - name: Deploy Angular to IIS (UAT)
+        shell: powershell
+        run: |
+          ./scripts/deploy-iis.ps1 `
+            -ArtifactPath "./dist/angular.web/browser" `
+            -SitePath "${{ vars.IIS_SITE_PATH || 'C:\inetpub\wwwroot\web-uat' }}" `
+            -AppPoolName "${{ vars.IIS_APP_POOL || 'AngularWebUatAppPool' }}" `
+            -SiteName "${{ vars.IIS_SITE_NAME || 'AngularWeb-UAT' }}" `
+            -HealthCheckUrl "${{ vars.HEALTH_CHECK_URL || 'http://localhost/' }}" `
+            -EnvironmentName "UAT"
