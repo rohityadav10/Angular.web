@@ -2,7 +2,7 @@
 
 A sample Angular single-page application designed to demonstrate modern frontend development, containerization, code quality validation, and CI/CD automation using GitHub Actions.
 
-## Overview
+##  Overview
 
 This repository contains the frontend application of the project.
 
