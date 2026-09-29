@@ -24,7 +24,8 @@ module.exports = function (config) {
       reporters: [
         { type: 'html' },
         { type: 'text-summary' },
-        { type: 'cobertura' }
+        { type: 'cobertura' },
+        { type: 'lcovonly' }   // lcov.info, read by SonarCloud (Azure DevOps pipeline)
       ]
     },
     junitReporter: {
