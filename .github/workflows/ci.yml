@@ -61,14 +61,14 @@ jobs:
           fail-on-error: 'false'
 
       - name: Upload test results artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: angular-test-results
           path: ${{ env.WORKING_DIR }}/test-results/
 
       - name: Upload coverage report artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: angular-coverage-report
           path: ${{ env.WORKING_DIR }}/coverage/
@@ -90,7 +90,7 @@ jobs:
           fi
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: angular-dist
           path: ${{ env.WORKING_DIR }}/dist/
@@ -129,7 +129,7 @@ jobs:
           output: 'trivy-dependency-results.txt'
 
       - name: Upload Trivy scan results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: trivy-dependency-scan
@@ -169,7 +169,7 @@ jobs:
           output: 'trivy-image-results.txt'
 
       - name: Upload image scan results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: trivy-image-scan
@@ -227,7 +227,7 @@ jobs:
             -EnvironmentName "SIT"
 
       - name: Upload IIS backup artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: angular-web-iis-backup
