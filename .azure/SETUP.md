@@ -1,4 +1,4 @@
-# One-time setup: Azure + Azure DevOps
+# One-time setup: Azure + Azure DevOps 
 
 Everything the pipelines in `.azure/` need, in order. It applies to **both** repositories
 (`NetCore.API`, `Angular.web`); steps done once are marked **(once)**, steps done per
