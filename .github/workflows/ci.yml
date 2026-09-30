@@ -19,7 +19,7 @@ env:
 
 jobs:
 
-  # Stage 1: Restore, Build, Test, Coverage
+  # Stage 1: Restore, Build, Test,Coverage
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
