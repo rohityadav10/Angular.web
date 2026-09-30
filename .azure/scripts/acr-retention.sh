@@ -2,7 +2,7 @@
 # Registry retention for one repository, run by the pipeline right after each push.
 #
 # Why here and not as an ACR Task (`acr purge` on a schedule): ACR Tasks are blocked on
-# free-trial and some sponsored subscriptions (TasksOperationsNotAllowed), and the retention
+# free-trial and some sponsored subscriptions (TasksOperationsNotAllowed), & the retention
 # *policy* feature needs the Premium tier. This works on any tier with plain `az acr` calls.
 #
 # Rule: keep the newest KEEP tagged images, plus ANY image an active Container App revision in
