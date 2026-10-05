@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Test and coverage gate: fails unless every test passed (and at least one ran) and line
+    Test and coverage gate: fails unless every test passed (and at least one ran) and line 
     coverage meets the threshold. Reads the files the test runners already produce.
 .DESCRIPTION
     Test results: TRX (.NET / xUnit) or JUnit XML (Angular / Karma), detected by content.
