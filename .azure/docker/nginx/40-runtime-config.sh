@@ -1,5 +1,5 @@
 #!/bin/sh
-# Writes the SPA's runtime config.json from container environment variables, which Container
+# Writes the SPA's runtime config.json from container environment variables, which Container 
 # Apps sets per environment. Keys match src/app/app-config.ts. APP_VERSION is baked into the
 # image at build time.
 set -eu
