@@ -52,7 +52,7 @@ jobs:
             --karma-config=karma.conf.ci.js
 
       - name: Publish test results
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: always()
         with:
           name: Angular Test Results
